@@ -246,13 +246,14 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
                   Categoria:
                 </Label>
                 <Select
-                  value={form.watch("categoryId")}
-                  onValueChange={(value) => form.setValue("categoryId", value)}
+                  value={form.watch("categoryId") || ""}
+                  onValueChange={(value) => form.setValue("categoryId", value || null)}
                 >
                   <SelectTrigger className="w-48" data-testid="select-category">
                     <SelectValue placeholder="Selecionar categoria" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">Nenhuma categoria</SelectItem>
                     {categories.map(category => (
                       <SelectItem key={category.id} value={category.id}>
                         <div className="flex items-center space-x-2">
@@ -443,7 +444,7 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
                       const tomorrow = new Date();
                       tomorrow.setDate(tomorrow.getDate() + 1);
                       tomorrow.setHours(9, 0, 0, 0);
-                      form.setValue("reminderDate", tomorrow.toISOString().slice(0, 16));
+                      form.setValue("reminderDate", tomorrow.toISOString().slice(0, 16) as any);
                     }}
                     data-testid="button-tomorrow"
                   >
@@ -457,7 +458,7 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
                       const nextWeek = new Date();
                       nextWeek.setDate(nextWeek.getDate() + 7);
                       nextWeek.setHours(9, 0, 0, 0);
-                      form.setValue("reminderDate", nextWeek.toISOString().slice(0, 16));
+                      form.setValue("reminderDate", nextWeek.toISOString().slice(0, 16) as any);
                     }}
                     data-testid="button-next-week"
                   >
@@ -471,7 +472,7 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
                       const nextMonth = new Date();
                       nextMonth.setMonth(nextMonth.getMonth() + 1);
                       nextMonth.setHours(9, 0, 0, 0);
-                      form.setValue("reminderDate", nextMonth.toISOString().slice(0, 16));
+                      form.setValue("reminderDate", nextMonth.toISOString().slice(0, 16) as any);
                     }}
                     data-testid="button-next-month"
                   >
@@ -482,7 +483,7 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => form.setValue("reminderDate", undefined)}
+                      onClick={() => form.setValue("reminderDate", "" as any)}
                       data-testid="button-clear-reminder"
                     >
                       Limpar
