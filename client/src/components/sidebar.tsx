@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { type Category, type Note } from "@shared/schema";
+import { SettingsModal } from "./settings-modal";
 import {
   Home,
   Star,
@@ -33,7 +35,9 @@ export function Sidebar({
   viewMode,
   onViewModeChange,
   isOpen,
+  onToggle,
 }: SidebarProps) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const favoriteNotes = notes.filter(note => note.isFavorite);
   const archivedNotes = notes.filter(note => note.isArchived);
   const reminderNotes = notes.filter(note => note.reminderDate);
@@ -48,7 +52,7 @@ export function Sidebar({
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => onToggle()}
+          onClick={onToggle}
         />
       )}
 
@@ -208,6 +212,7 @@ export function Sidebar({
             <Button
               variant="ghost"
               className="w-full justify-start"
+              onClick={() => setIsSettingsOpen(true)}
               data-testid="nav-settings"
             >
               <Settings className="w-4 h-4 mr-3" />
@@ -216,6 +221,11 @@ export function Sidebar({
           </div>
         </div>
       </aside>
+      
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </>
   );
 }

@@ -74,6 +74,7 @@ export class MemStorage implements IStorage {
     const note: Note = {
       ...insertNote,
       id,
+      categoryId: insertNote.categoryId || null,
       tags: insertNote.tags || [],
       checklist: insertNote.checklist || [],
       isFavorite: insertNote.isFavorite || false,
@@ -108,7 +109,7 @@ export class MemStorage implements IStorage {
     return Array.from(this.notes.values()).filter(note =>
       note.title.toLowerCase().includes(lowercaseQuery) ||
       note.content.toLowerCase().includes(lowercaseQuery) ||
-      note.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery))
+      (note.tags && note.tags.some(tag => tag.toLowerCase().includes(lowercaseQuery)))
     );
   }
 
@@ -117,7 +118,7 @@ export class MemStorage implements IStorage {
   }
 
   async getNotesByTag(tag: string): Promise<Note[]> {
-    return Array.from(this.notes.values()).filter(note => note.tags.includes(tag));
+    return Array.from(this.notes.values()).filter(note => note.tags && note.tags.includes(tag));
   }
 
   async getFavoriteNotes(): Promise<Note[]> {
@@ -129,7 +130,7 @@ export class MemStorage implements IStorage {
   }
 
   async getNotesWithReminders(): Promise<Note[]> {
-    return Array.from(this.notes.values()).filter(note => note.reminderDate);
+    return Array.from(this.notes.values()).filter(note => note.reminderDate != null);
   }
 
   // Categories methods

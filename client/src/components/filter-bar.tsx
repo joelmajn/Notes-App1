@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { type Category } from "@shared/schema";
+import { isToday, isThisWeek, isThisMonth } from "date-fns";
 
 interface FilterBarProps {
   categories: Category[];
@@ -8,6 +9,7 @@ interface FilterBarProps {
   selectedTag: string | null;
   onCategorySelect: (categoryId: string | null) => void;
   onTagSelect: (tag: string | null) => void;
+  onDateFilter?: (filter: 'today' | 'week' | 'month' | null) => void;
   viewMode: "all" | "favorites" | "archived" | "reminders";
   onViewModeChange: (mode: "all" | "favorites" | "archived" | "reminders") => void;
 }
@@ -20,6 +22,7 @@ export function FilterBar({
   onTagSelect,
   viewMode,
   onViewModeChange,
+  onDateFilter,
 }: FilterBarProps) {
   return (
     <div className="bg-card border-b border-border px-4 md:px-6 py-3">
@@ -46,6 +49,7 @@ export function FilterBar({
             variant="secondary"
             size="sm"
             className="whitespace-nowrap rounded-full"
+            onClick={() => onDateFilter?.('today')}
             data-testid="filter-today"
           >
             Hoje
@@ -55,6 +59,7 @@ export function FilterBar({
             variant="secondary"
             size="sm"
             className="whitespace-nowrap rounded-full"
+            onClick={() => onDateFilter?.('week')}
             data-testid="filter-week"
           >
             Esta Semana
@@ -64,6 +69,7 @@ export function FilterBar({
             variant="secondary"
             size="sm"
             className="whitespace-nowrap rounded-full"
+            onClick={() => onDateFilter?.('month')}
             data-testid="filter-month"
           >
             Este Mês

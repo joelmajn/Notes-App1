@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isToday, isThisWeek, isThisMonth } from "date-fns";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/top-bar";
 import { FilterBar } from "@/components/filter-bar";
@@ -19,6 +20,7 @@ export default function NotesPage() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'month' | null>(null);
 
   const { data: categories = [] } = useCategories();
   const { data: notes = [], isLoading } = useNotes({
@@ -60,6 +62,23 @@ export default function NotesPage() {
   const filteredNotes = notes.filter(note => {
     if (viewMode === "archived" && !note.isArchived) return false;
     if (viewMode !== "archived" && note.isArchived) return false;
+    
+    // Apply date filter
+    if (dateFilter) {
+      const noteDate = new Date(note.updatedAt);
+      switch (dateFilter) {
+        case 'today':
+          if (!isToday(noteDate)) return false;
+          break;
+        case 'week':
+          if (!isThisWeek(noteDate)) return false;
+          break;
+        case 'month':
+          if (!isThisMonth(noteDate)) return false;
+          break;
+      }
+    }
+    
     return true;
   });
 
@@ -95,6 +114,12 @@ export default function NotesPage() {
           onTagSelect={handleTagFilter}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
+          onDateFilter={(filter) => {
+            setDateFilter(filter);
+            setSelectedCategory(null);
+            setSelectedTag(null);
+            setViewMode('all');
+          }}
         />
 
         {/* Notes Grid */}

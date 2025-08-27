@@ -56,9 +56,9 @@ export function NoteCard({ note, category, onClick }: NoteCardProps) {
     // TODO: Implement context menu
   };
 
-  const completedTasks = note.checklist.filter(item => item.completed).length;
-  const totalTasks = note.checklist.length;
-  const previewTasks = note.checklist.slice(0, 2);
+  const completedTasks = note.checklist ? note.checklist.filter(item => item.completed).length : 0;
+  const totalTasks = note.checklist ? note.checklist.length : 0;
+  const previewTasks = note.checklist ? note.checklist.slice(0, 2) : [];
   const remainingTasks = totalTasks - previewTasks.length;
 
   const formatDate = (date: Date) => {
@@ -119,7 +119,7 @@ export function NoteCard({ note, category, onClick }: NoteCardProps) {
       </p>
 
       {/* Checklist Preview */}
-      {note.checklist.length > 0 && (
+      {note.checklist && note.checklist.length > 0 && (
         <div className="mb-3">
           {previewTasks.map(item => (
             <div key={item.id} className="flex items-center space-x-2 mb-1">
@@ -149,9 +149,9 @@ export function NoteCard({ note, category, onClick }: NoteCardProps) {
       )}
 
       {/* Tags */}
-      {note.tags.length > 0 && (
+      {note.tags && note.tags.length > 0 && (
         <div className="flex items-center space-x-2 mb-3 flex-wrap gap-1">
-          {note.tags.slice(0, 2).map(tag => (
+          {note.tags && note.tags.slice(0, 2).map(tag => (
             <Badge
               key={tag}
               variant="secondary"
@@ -161,9 +161,9 @@ export function NoteCard({ note, category, onClick }: NoteCardProps) {
               {tag}
             </Badge>
           ))}
-          {note.tags.length > 2 && (
+          {note.tags && note.tags.length > 2 && (
             <Badge variant="secondary" className="text-xs px-2 py-0.5">
-              +{note.tags.length - 2}
+              +{note.tags ? note.tags.length - 2 : 0}
             </Badge>
           )}
         </div>

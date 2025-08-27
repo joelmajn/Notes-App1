@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CalendarModal } from "./calendar-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/theme-provider";
@@ -30,6 +31,7 @@ export function TopBar({
   notesCount,
 }: TopBarProps) {
   const { theme, setTheme } = useTheme();
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const toggleTheme = () => {
@@ -108,6 +110,7 @@ export function TopBar({
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
+            onClick={() => setIsCalendarOpen(true)}
             data-testid="button-calendar"
           >
             <Calendar className="w-4 h-4" />
@@ -139,6 +142,11 @@ export function TopBar({
           </Button>
         </div>
       </div>
+
+      <CalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+      />
 
       {/* Mobile Search Bar */}
       <div className="mt-4 md:hidden">

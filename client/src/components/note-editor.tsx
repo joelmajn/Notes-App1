@@ -73,14 +73,14 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
         title: note.title,
         content: note.content,
         categoryId: note.categoryId || "",
-        tags: note.tags,
-        checklist: note.checklist,
+        tags: note.tags || [],
+        checklist: note.checklist || [],
         reminderDate: note.reminderDate || undefined,
         reminderRepeat: note.reminderRepeat || "",
         isFavorite: note.isFavorite,
         isArchived: note.isArchived,
       });
-      setChecklist(note.checklist);
+      setChecklist(note.checklist || []);
     } else {
       form.reset({
         title: "",
@@ -401,33 +401,93 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
                 <h3 className="text-lg font-semibold">Lembrete</h3>
               </div>
 
-              <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
-                <div className="flex items-center space-x-2">
-                  <Label className="text-sm text-muted-foreground">Data:</Label>
-                  <Input
-                    type="datetime-local"
-                    {...form.register("reminderDate")}
-                    className="w-auto"
-                    data-testid="input-reminder-date"
-                  />
-                </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Label className="text-sm text-muted-foreground whitespace-nowrap">Data e Hora:</Label>
+                    <Input
+                      type="datetime-local"
+                      {...form.register("reminderDate")}
+                      className="flex-1"
+                      data-testid="input-reminder-date"
+                    />
+                  </div>
 
-                <div className="flex items-center space-x-2">
-                  <Label className="text-sm text-muted-foreground">Repetir:</Label>
-                  <Select
-                    value={form.watch("reminderRepeat") || ""}
-                    onValueChange={(value) => form.setValue("reminderRepeat", value)}
+                  <div className="flex items-center space-x-2">
+                    <Label className="text-sm text-muted-foreground whitespace-nowrap">Repetir:</Label>
+                    <Select
+                      value={form.watch("reminderRepeat") || ""}
+                      onValueChange={(value) => form.setValue("reminderRepeat", value)}
+                    >
+                      <SelectTrigger className="flex-1" data-testid="select-reminder-repeat">
+                        <SelectValue placeholder="Não repetir" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Não repetir</SelectItem>
+                        <SelectItem value="daily">Diariamente</SelectItem>
+                        <SelectItem value="weekly">Semanalmente</SelectItem>
+                        <SelectItem value="monthly">Mensalmente</SelectItem>
+                        <SelectItem value="yearly">Anualmente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {/* Quick Date Buttons */}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const tomorrow = new Date();
+                      tomorrow.setDate(tomorrow.getDate() + 1);
+                      tomorrow.setHours(9, 0, 0, 0);
+                      form.setValue("reminderDate", tomorrow.toISOString().slice(0, 16));
+                    }}
+                    data-testid="button-tomorrow"
                   >
-                    <SelectTrigger className="w-48" data-testid="select-reminder-repeat">
-                      <SelectValue placeholder="Não repetir" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Não repetir</SelectItem>
-                      <SelectItem value="daily">Diariamente</SelectItem>
-                      <SelectItem value="weekly">Semanalmente</SelectItem>
-                      <SelectItem value="monthly">Mensalmente</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    Amanhã
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const nextWeek = new Date();
+                      nextWeek.setDate(nextWeek.getDate() + 7);
+                      nextWeek.setHours(9, 0, 0, 0);
+                      form.setValue("reminderDate", nextWeek.toISOString().slice(0, 16));
+                    }}
+                    data-testid="button-next-week"
+                  >
+                    Próxima Semana
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const nextMonth = new Date();
+                      nextMonth.setMonth(nextMonth.getMonth() + 1);
+                      nextMonth.setHours(9, 0, 0, 0);
+                      form.setValue("reminderDate", nextMonth.toISOString().slice(0, 16));
+                    }}
+                    data-testid="button-next-month"
+                  >
+                    Próximo Mês
+                  </Button>
+                  {form.watch("reminderDate") && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => form.setValue("reminderDate", undefined)}
+                      data-testid="button-clear-reminder"
+                    >
+                      Limpar
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
