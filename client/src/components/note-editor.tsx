@@ -1,0 +1,439 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { type Note, type Category, type ChecklistItem } from "@shared/schema";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertNoteSchema } from "@shared/schema";
+import { z } from "zod";
+import {
+  ArrowLeft,
+  Star,
+  Bell,
+  Plus,
+  Trash2,
+  Calendar,
+  X,
+} from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+
+const noteFormSchema = insertNoteSchema.extend({
+  tags: z.array(z.string()).optional(),
+  checklist: z.array(z.object({
+    id: z.string(),
+    text: z.string(),
+    completed: z.boolean(),
+  })).optional(),
+});
+
+type NoteFormData = z.infer<typeof noteFormSchema>;
+
+interface NoteEditorProps {
+  isOpen: boolean;
+  note: Note | null;
+  categories: Category[];
+  onClose: () => void;
+}
+
+export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProps) {
+  const [tagInput, setTagInput] = useState("");
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [newTaskInput, setNewTaskInput] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const form = useForm<NoteFormData>({
+    resolver: zodResolver(noteFormSchema),
+    defaultValues: {
+      title: "",
+      content: "",
+      categoryId: "",
+      tags: [],
+      checklist: [],
+      reminderDate: undefined,
+      reminderRepeat: "",
+      isFavorite: false,
+      isArchived: false,
+    },
+  });
+
+  // Initialize form with note data when editing
+  useEffect(() => {
+    if (note) {
+      form.reset({
+        title: note.title,
+        content: note.content,
+        categoryId: note.categoryId || "",
+        tags: note.tags,
+        checklist: note.checklist,
+        reminderDate: note.reminderDate || undefined,
+        reminderRepeat: note.reminderRepeat || "",
+        isFavorite: note.isFavorite,
+        isArchived: note.isArchived,
+      });
+      setChecklist(note.checklist);
+    } else {
+      form.reset({
+        title: "",
+        content: "",
+        categoryId: "",
+        tags: [],
+        checklist: [],
+        reminderDate: undefined,
+        reminderRepeat: "",
+        isFavorite: false,
+        isArchived: false,
+      });
+      setChecklist([]);
+    }
+  }, [note, form]);
+
+  const createNoteMutation = useMutation({
+    mutationFn: (data: NoteFormData) => apiRequest("POST", "/api/notes", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notes"] });
+      toast({ title: "Nota criada com sucesso!" });
+      onClose();
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar a nota",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateNoteMutation = useMutation({
+    mutationFn: (data: NoteFormData) =>
+      apiRequest("PATCH", `/api/notes/${note!.id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notes"] });
+      toast({ title: "Nota atualizada com sucesso!" });
+      onClose();
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a nota",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (data: NoteFormData) => {
+    const formData = {
+      ...data,
+      checklist,
+    };
+
+    if (note) {
+      updateNoteMutation.mutate(formData);
+    } else {
+      createNoteMutation.mutate(formData);
+    }
+  };
+
+  const handleAddTag = () => {
+    if (!tagInput.trim()) return;
+    
+    const currentTags = form.getValues("tags") || [];
+    if (!currentTags.includes(tagInput.trim())) {
+      form.setValue("tags", [...currentTags, tagInput.trim()]);
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    const currentTags = form.getValues("tags") || [];
+    form.setValue("tags", currentTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleAddChecklistItem = () => {
+    if (!newTaskInput.trim()) return;
+    
+    const newItem: ChecklistItem = {
+      id: uuidv4(),
+      text: newTaskInput.trim(),
+      completed: false,
+    };
+    
+    setChecklist([...checklist, newItem]);
+    setNewTaskInput("");
+  };
+
+  const handleUpdateChecklistItem = (id: string, updates: Partial<ChecklistItem>) => {
+    setChecklist(checklist.map(item => 
+      item.id === id ? { ...item, ...updates } : item
+    ));
+  };
+
+  const handleRemoveChecklistItem = (id: string) => {
+    setChecklist(checklist.filter(item => item.id !== id));
+  };
+
+  const currentTags = form.watch("tags") || [];
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              data-testid="button-close-editor"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <DialogTitle>
+              {note ? "Editar Nota" : "Nova Nota"}
+            </DialogTitle>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={() => form.setValue("isFavorite", !form.watch("isFavorite"))}
+              className={form.watch("isFavorite") ? "text-yellow-500" : ""}
+              data-testid="button-toggle-favorite"
+            >
+              <Star className={`w-4 h-4 ${form.watch("isFavorite") ? "fill-current" : ""}`} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              data-testid="button-reminder"
+            >
+              <Bell className="w-4 h-4" />
+            </Button>
+            <Button
+              type="submit"
+              onClick={form.handleSubmit(handleSubmit)}
+              disabled={createNoteMutation.isPending || updateNoteMutation.isPending}
+              data-testid="button-save-note"
+            >
+              Salvar
+            </Button>
+          </div>
+        </DialogHeader>
+
+        <div className="overflow-auto max-h-[calc(90vh-120px)] space-y-6">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            {/* Title */}
+            <Input
+              {...form.register("title")}
+              placeholder="Título da nota..."
+              className="text-2xl font-bold border-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+              data-testid="input-note-title"
+            />
+
+            {/* Category and Tags */}
+            <div className="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-4 md:space-y-0">
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="category" className="text-sm text-muted-foreground whitespace-nowrap">
+                  Categoria:
+                </Label>
+                <Select
+                  value={form.watch("categoryId")}
+                  onValueChange={(value) => form.setValue("categoryId", value)}
+                >
+                  <SelectTrigger className="w-48" data-testid="select-category">
+                    <SelectValue placeholder="Selecionar categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(category => (
+                      <SelectItem key={category.id} value={category.id}>
+                        <div className="flex items-center space-x-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <span>{category.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2 flex-1">
+                <Label htmlFor="tags" className="text-sm text-muted-foreground whitespace-nowrap">
+                  Tags:
+                </Label>
+                <div className="flex flex-1 space-x-2">
+                  <Input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTag();
+                      }
+                    }}
+                    placeholder="Adicionar tags..."
+                    className="flex-1"
+                    data-testid="input-tags"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddTag}
+                    data-testid="button-add-tag"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tags Display */}
+            {currentTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {currentTags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="flex items-center space-x-1">
+                    <span>{tag}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 w-4 h-4"
+                      onClick={() => handleRemoveTag(tag)}
+                      data-testid={`button-remove-tag-${tag}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Content */}
+            <div>
+              <Textarea
+                {...form.register("content")}
+                placeholder="Escreva sua nota aqui..."
+                className="min-h-64 resize-none"
+                data-testid="textarea-note-content"
+              />
+            </div>
+
+            {/* Checklist Section */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold">Checklist</h3>
+              </div>
+
+              <div className="space-y-2">
+                {checklist.map(item => (
+                  <div key={item.id} className="flex items-center space-x-3 p-2 border border-border rounded-lg">
+                    <Checkbox
+                      checked={item.completed}
+                      onCheckedChange={(checked) =>
+                        handleUpdateChecklistItem(item.id, { completed: !!checked })
+                      }
+                      data-testid={`checkbox-task-${item.id}`}
+                    />
+                    <Input
+                      value={item.text}
+                      onChange={(e) =>
+                        handleUpdateChecklistItem(item.id, { text: e.target.value })
+                      }
+                      className="flex-1 border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                      placeholder="Item do checklist..."
+                      data-testid={`input-task-${item.id}`}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveChecklistItem(item.id)}
+                      className="text-muted-foreground hover:text-destructive"
+                      data-testid={`button-remove-task-${item.id}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+
+                <div className="flex items-center space-x-3 p-2 border border-dashed border-border rounded-lg">
+                  <Input
+                    value={newTaskInput}
+                    onChange={(e) => setNewTaskInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddChecklistItem();
+                      }
+                    }}
+                    placeholder="Adicionar novo item..."
+                    className="flex-1 border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                    data-testid="input-new-task"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAddChecklistItem}
+                    data-testid="button-add-task"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Reminder Section */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold">Lembrete</h3>
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm text-muted-foreground">Data:</Label>
+                  <Input
+                    type="datetime-local"
+                    {...form.register("reminderDate")}
+                    className="w-auto"
+                    data-testid="input-reminder-date"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm text-muted-foreground">Repetir:</Label>
+                  <Select
+                    value={form.watch("reminderRepeat") || ""}
+                    onValueChange={(value) => form.setValue("reminderRepeat", value)}
+                  >
+                    <SelectTrigger className="w-48" data-testid="select-reminder-repeat">
+                      <SelectValue placeholder="Não repetir" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Não repetir</SelectItem>
+                      <SelectItem value="daily">Diariamente</SelectItem>
+                      <SelectItem value="weekly">Semanalmente</SelectItem>
+                      <SelectItem value="monthly">Mensalmente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
