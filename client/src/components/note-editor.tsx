@@ -56,11 +56,11 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
     defaultValues: {
       title: "",
       content: "",
-      categoryId: "",
+      categoryId: null,
       tags: [],
       checklist: [],
       reminderDate: undefined,
-      reminderRepeat: "",
+      reminderRepeat: "none",
       isFavorite: false,
       isArchived: false,
     },
@@ -72,11 +72,11 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
       form.reset({
         title: note.title,
         content: note.content,
-        categoryId: note.categoryId || "",
+        categoryId: note.categoryId || null,
         tags: note.tags || [],
         checklist: note.checklist || [],
         reminderDate: note.reminderDate || undefined,
-        reminderRepeat: note.reminderRepeat || "",
+        reminderRepeat: note.reminderRepeat || "none",
         isFavorite: note.isFavorite,
         isArchived: note.isArchived,
       });
@@ -85,11 +85,11 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
       form.reset({
         title: "",
         content: "",
-        categoryId: "",
+        categoryId: null,
         tags: [],
         checklist: [],
         reminderDate: undefined,
-        reminderRepeat: "",
+        reminderRepeat: "none",
         isFavorite: false,
         isArchived: false,
       });
@@ -246,14 +246,14 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
                   Categoria:
                 </Label>
                 <Select
-                  value={form.watch("categoryId") || ""}
-                  onValueChange={(value) => form.setValue("categoryId", value || null)}
+                  value={form.watch("categoryId") || "none"}
+                  onValueChange={(value) => form.setValue("categoryId", value === "none" ? null : value)}
                 >
                   <SelectTrigger className="w-48" data-testid="select-category">
                     <SelectValue placeholder="Selecionar categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma categoria</SelectItem>
+                    <SelectItem value="none">Nenhuma categoria</SelectItem>
                     {categories.map(category => (
                       <SelectItem key={category.id} value={category.id}>
                         <div className="flex items-center space-x-2">
@@ -417,14 +417,14 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
                   <div className="flex items-center space-x-2">
                     <Label className="text-sm text-muted-foreground whitespace-nowrap">Repetir:</Label>
                     <Select
-                      value={form.watch("reminderRepeat") || ""}
-                      onValueChange={(value) => form.setValue("reminderRepeat", value)}
+                      value={form.watch("reminderRepeat") || "none"}
+                      onValueChange={(value) => form.setValue("reminderRepeat", value === "none" ? "" : value)}
                     >
                       <SelectTrigger className="flex-1" data-testid="select-reminder-repeat">
                         <SelectValue placeholder="Não repetir" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Não repetir</SelectItem>
+                        <SelectItem value="none">Não repetir</SelectItem>
                         <SelectItem value="daily">Diariamente</SelectItem>
                         <SelectItem value="weekly">Semanalmente</SelectItem>
                         <SelectItem value="monthly">Mensalmente</SelectItem>
