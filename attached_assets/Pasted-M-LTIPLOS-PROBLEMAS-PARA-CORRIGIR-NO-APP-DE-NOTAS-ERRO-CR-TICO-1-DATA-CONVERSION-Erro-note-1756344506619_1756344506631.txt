@@ -1,0 +1,46 @@
+MÚLTIPLOS PROBLEMAS PARA CORRIGIR NO APP DE NOTAS:
+
+ERRO CRÍTICO 1 - DATA CONVERSION:
+Erro: "note.startDate.toISOString is not a function" na linha 116 do note-editor.tsx
+
+CAUSA: startDate não está sendo salvo como objeto Date, provavelmente como string
+CORREÇÃO NECESSÁRIA:
+- Converter strings de data para objetos Date antes de usar toISOString()
+- Verificar como as datas estão sendo salvas e carregadas
+- Implementar conversão segura: `new Date(note.startDate).toISOString().slice(0, 10)`
+
+PROBLEMA 2 - FILTRO DE CATEGORIAS INCOMPLETO:
+A barra "filtrar por" só mostra "estudos" e "pessoal", faltam outras categorias
+CORREÇÃO:
+- Verificar se todas as categorias estão sendo carregadas dinamicamente
+- Garantir que o filtro mostre todas as categorias disponíveis
+- Adicionar categorias padrão se necessário (trabalho, ideias, tarefas, etc.)
+
+PROBLEMA 3 - FUNCIONALIDADE DE VISUALIZAÇÃO:
+Ao clicar na nota deve abrir modo de VISUALIZAÇÃO (não edição)
+IMPLEMENTAR:
+- Modal ou página de visualização apenas para leitura
+- Mostrar todos os dados da nota sem campos editáveis
+- Botão para entrar no modo de edição se necessário
+
+PROBLEMA 4 - MENU DE AÇÕES (TRÊS PONTINHOS):
+Implementar menu dropdown nos três pontinhos de cada nota com:
+- Opção "Editar" (abre o editor)
+- Opção "Excluir" (com confirmação)
+- Possivelmente "Favoritar/Desfavoritar"
+
+PROBLEMA 5 - PÁGINAS NÃO FUNCIONAIS:
+As páginas "Favoritas" e "Lembretes" não abrem/funcionam
+IMPLEMENTAR:
+- Página de Favoritas: filtrar e mostrar apenas notas marcadas como favoritas
+- Página de Lembretes: filtrar e mostrar notas com lembretes ativos
+- Navegação funcional entre essas páginas
+
+PRIORIDADE DE CORREÇÃO:
+1. PRIMEIRO: Corrigir o erro de toISOString (crítico)
+2. SEGUNDO: Implementar visualização de notas
+3. TERCEIRO: Corrigir filtro de categorias
+4. QUARTO: Menu de ações (três pontinhos)
+5. QUINTO: Páginas de favoritas e lembretes
+
+Forneça o código corrigido completo para todos os componentes afetados, com explicação detalhada das mudanças feitas para cada problema.

@@ -78,7 +78,7 @@ export function FilterBar({
           <div className="w-px h-4 bg-border mx-2" />
 
           {/* Category Filters */}
-          {categories.slice(0, 2).map(category => (
+          {categories.map(category => (
             <Button
               key={category.id}
               variant={selectedCategory === category.id ? "default" : "secondary"}

@@ -14,16 +14,37 @@ import {
   Bell,
   Paperclip,
   Calendar,
+  Edit,
+  Trash2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface NoteCardProps {
   note: Note;
   category?: Category;
   onClick: () => void;
+  onEdit: () => void;
 }
 
-export function NoteCard({ note, category, onClick }: NoteCardProps) {
+export function NoteCard({ note, category, onClick, onEdit }: NoteCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -52,9 +73,29 @@ export function NoteCard({ note, category, onClick }: NoteCardProps) {
     toggleFavoriteMutation.mutate();
   };
 
-  const handleMenuClick = (e: React.MouseEvent) => {
+  const deleteNoteMutation = useMutation({
+    mutationFn: () => apiRequest("DELETE", `/api/notes/${note.id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notes"] });
+      toast({ title: "Nota excluída com sucesso!" });
+      setIsDeleteDialogOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a nota",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement context menu
+    onEdit();
+  };
+
+  const handleDelete = () => {
+    deleteNoteMutation.mutate();
   };
 
   const completedTasks = note.checklist ? note.checklist.filter(item => item.completed).length : 0;
@@ -110,15 +151,40 @@ export function NoteCard({ note, category, onClick }: NoteCardProps) {
           >
             <Star className={`w-3 h-3 ${note.isFavorite ? "fill-current" : ""}`} />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-            onClick={handleMenuClick}
-            data-testid={`button-menu-${note.id}`}
-          >
-            <MoreHorizontal className="w-3 h-3" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                data-testid={`button-menu-${note.id}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleEdit}>
+                <Edit className="w-4 h-4 mr-2" />
+                Editar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleToggleFavorite}>
+                <Star className="w-4 h-4 mr-2" />
+                {note.isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDeleteDialogOpen(true);
+                }}
+                className="text-destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -214,6 +280,27 @@ export function NoteCard({ note, category, onClick }: NoteCardProps) {
         {/* Placeholder for attachments */}
         <Paperclip className="w-3 h-3 opacity-0" />
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir nota</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a nota "{note.title}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { TopBar } from "@/components/top-bar";
 import { FilterBar } from "@/components/filter-bar";
 import { NoteCard } from "@/components/note-card";
 import { NoteEditor } from "@/components/note-editor";
+import { NoteViewer } from "@/components/note-viewer";
 import { MobileNav } from "@/components/mobile-nav";
 import { useNotes } from "@/hooks/use-notes";
 import { useCategories } from "@/hooks/use-categories";
@@ -19,6 +20,7 @@ export default function NotesPage() {
   const [viewMode, setViewMode] = useState<"all" | "favorites" | "archived" | "reminders">("all");
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [viewingNote, setViewingNote] = useState<Note | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'month' | null>(null);
 
@@ -33,8 +35,13 @@ export default function NotesPage() {
   });
 
   const handleEditNote = (note: Note) => {
+    setViewingNote(null); // Close viewer if open
     setEditingNote(note);
     setIsEditorOpen(true);
+  };
+
+  const handleViewNote = (note: Note) => {
+    setViewingNote(note);
   };
 
   const handleNewNote = () => {
@@ -45,6 +52,18 @@ export default function NotesPage() {
   const handleCloseEditor = () => {
     setIsEditorOpen(false);
     setEditingNote(null);
+  };
+
+  const handleCloseViewer = () => {
+    setViewingNote(null);
+  };
+
+  const handleEditFromViewer = () => {
+    if (viewingNote) {
+      setEditingNote(viewingNote);
+      setViewingNote(null);
+      setIsEditorOpen(true);
+    }
   };
 
   const handleCategoryFilter = (categoryId: string | null) => {
@@ -141,7 +160,8 @@ export default function NotesPage() {
                   key={note.id}
                   note={note}
                   category={categories.find(c => c.id === note.categoryId)}
-                  onClick={() => handleEditNote(note)}
+                  onClick={() => handleViewNote(note)}
+                  onEdit={() => handleEditNote(note)}
                   data-testid={`note-card-${note.id}`}
                 />
               ))}
@@ -190,6 +210,15 @@ export default function NotesPage() {
         note={editingNote}
         categories={categories}
         onClose={handleCloseEditor}
+      />
+
+      {/* Note Viewer Modal */}
+      <NoteViewer
+        isOpen={!!viewingNote}
+        note={viewingNote}
+        category={viewingNote ? categories.find(c => c.id === viewingNote.categoryId) : undefined}
+        onClose={handleCloseViewer}
+        onEdit={handleEditFromViewer}
       />
     </div>
   );
