@@ -1,10 +1,10 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { api } from "@/lib/api";
 import { type Note, type Category } from "@shared/schema";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -50,7 +50,7 @@ export function NoteCard({ note, category, onClick, onEdit }: NoteCardProps) {
 
   const toggleFavoriteMutation = useMutation({
     mutationFn: () =>
-      apiRequest("PATCH", `/api/notes/${note.id}`, {
+      api.notes.update(note.id, {
         isFavorite: !note.isFavorite,
       }),
     onSuccess: () => {
@@ -74,7 +74,7 @@ export function NoteCard({ note, category, onClick, onEdit }: NoteCardProps) {
   };
 
   const deleteNoteMutation = useMutation({
-    mutationFn: () => apiRequest("DELETE", `/api/notes/${note.id}`),
+    mutationFn: () => api.notes.delete(note.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/notes"] });
       toast({ title: "Nota excluída com sucesso!" });

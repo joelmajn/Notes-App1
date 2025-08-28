@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { api } from "@/lib/api";
 import { type Note, type Category, type ChecklistItem } from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -139,39 +139,32 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
   }, [note, form]);
 
   const createNoteMutation = useMutation({
-    mutationFn: (data: NoteFormData) => apiRequest("POST", "/api/notes", data),
+    mutationFn: (data: NoteFormData) => api.notes.create(data),
     onSuccess: () => {
-      console.log("✅ Nota criada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["/api/notes"] });
       toast({ title: "Nota criada com sucesso!" });
       onClose();
     },
     onError: (error: any) => {
-      console.error("❌ Erro ao criar nota:", error);
-      console.error("❌ Detalhes do erro:", error.response?.data);
       toast({
         title: "Erro",
-        description: error.response?.data?.message || "Não foi possível criar a nota",
+        description: "Não foi possível criar a nota",
         variant: "destructive",
       });
     },
   });
 
   const updateNoteMutation = useMutation({
-    mutationFn: (data: NoteFormData) =>
-      apiRequest("PATCH", `/api/notes/${note!.id}`, data),
+    mutationFn: (data: NoteFormData) => api.notes.update(note!.id, data),
     onSuccess: () => {
-      console.log("✅ Nota atualizada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["/api/notes"] });
       toast({ title: "Nota atualizada com sucesso!" });
       onClose();
     },
     onError: (error: any) => {
-      console.error("❌ Erro ao atualizar nota:", error);
-      console.error("❌ Detalhes do erro:", error.response?.data);
       toast({
         title: "Erro",
-        description: error.response?.data?.message || "Não foi possível atualizar a nota",
+        description: "Não foi possível atualizar a nota",
         variant: "destructive",
       });
     },
