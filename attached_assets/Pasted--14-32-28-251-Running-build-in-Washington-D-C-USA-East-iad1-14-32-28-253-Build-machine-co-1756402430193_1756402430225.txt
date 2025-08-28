@@ -1,0 +1,48 @@
+[14:32:28.251] Running build in Washington, D.C., USA (East) – iad1
+[14:32:28.253] Build machine configuration: 2 cores, 8 GB
+[14:32:28.329] Cloning github.com/joelmajn/Notes-App1 (Branch: main, Commit: 1b2f4ad)
+[14:32:29.172] Cloning completed: 839.000ms
+[14:32:30.460] Restored build cache from previous deployment (6KekSD6Q7D7eHkS5ALUd1RUYoNHs)
+[14:32:31.242] Running "vercel build"
+[14:32:31.646] Vercel CLI 46.0.5
+[14:32:32.248] Running "install" command: `npm install`...
+[14:32:34.357] 
+[14:32:34.357] removed 141 packages, and audited 343 packages in 2s
+[14:32:34.358] 
+[14:32:34.358] 48 packages are looking for funding
+[14:32:34.358]   run `npm fund` for details
+[14:32:34.367] 
+[14:32:34.367] 5 vulnerabilities (1 low, 4 moderate)
+[14:32:34.368] 
+[14:32:34.368] To address issues that do not require attention, run:
+[14:32:34.368]   npm audit fix
+[14:32:34.368] 
+[14:32:34.369] To address all issues (including breaking changes), run:
+[14:32:34.369]   npm audit fix --force
+[14:32:34.369] 
+[14:32:34.369] Run `npm audit` for details.
+[14:32:36.512] 
+[14:32:36.513] > notes-app-frontend-standalone@1.0.0 build
+[14:32:36.513] > vite build
+[14:32:36.513] 
+[14:32:36.809] [36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[14:32:36.862] transforming...
+[14:32:37.196] Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+[14:32:37.196]   npx update-browserslist-db@latest
+[14:32:37.196]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[14:32:38.826] [32m✓[39m 52 modules transformed.
+[14:32:38.835] [31mx[39m Build failed in 2.00s
+[14:32:38.840] [31merror during build:
+[14:32:38.840] [31m[vite]: Rollup failed to resolve import "uuid" from "/vercel/path0/src/components/note-editor.tsx".
+[14:32:38.841] This is most likely unintended because it can break your application at runtime.
+[14:32:38.841] If you do want to externalize this module explicitly add it to
+[14:32:38.841] `build.rollupOptions.external`[31m
+[14:32:38.841]     at viteWarn (file:///vercel/path0/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:65839:17)
+[14:32:38.842]     at onwarn (file:///vercel/path0/node_modules/@vitejs/plugin-react/dist/index.mjs:280:9)
+[14:32:38.842]     at onRollupWarning (file:///vercel/path0/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:65869:5)
+[14:32:38.842]     at onwarn (file:///vercel/path0/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:65534:7)
+[14:32:38.842]     at file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:19452:13
+[14:32:38.843]     at Object.logger [as onLog] (file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:21178:9)
+[14:32:38.843]     at ModuleLoader.handleInvalidResolvedId (file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:20067:26)
+[14:32:38.843]     at file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:20025:26[39m
+[14:32:38.864] Error: Command "npm run build" exited with 1
