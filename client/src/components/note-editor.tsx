@@ -141,14 +141,17 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
   const createNoteMutation = useMutation({
     mutationFn: (data: NoteFormData) => apiRequest("POST", "/api/notes", data),
     onSuccess: () => {
+      console.log("✅ Nota criada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["/api/notes"] });
       toast({ title: "Nota criada com sucesso!" });
       onClose();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("❌ Erro ao criar nota:", error);
+      console.error("❌ Detalhes do erro:", error.response?.data);
       toast({
         title: "Erro",
-        description: "Não foi possível criar a nota",
+        description: error.response?.data?.message || "Não foi possível criar a nota",
         variant: "destructive",
       });
     },
@@ -158,24 +161,44 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
     mutationFn: (data: NoteFormData) =>
       apiRequest("PATCH", `/api/notes/${note!.id}`, data),
     onSuccess: () => {
+      console.log("✅ Nota atualizada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["/api/notes"] });
       toast({ title: "Nota atualizada com sucesso!" });
       onClose();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("❌ Erro ao atualizar nota:", error);
+      console.error("❌ Detalhes do erro:", error.response?.data);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar a nota",
+        description: error.response?.data?.message || "Não foi possível atualizar a nota",
         variant: "destructive",
       });
     },
   });
 
   const handleSubmit = (data: NoteFormData) => {
+    // Log para debugging
+    console.log("🔍 Dados do formulário enviados:", data);
+    console.log("🔍 Checklist:", checklist);
+    
     const formData = {
       ...data,
       checklist,
+      // Garantir que campos obrigatórios não sejam undefined
+      title: data.title || "",
+      content: data.content || "",
+      // Converter datas para o formato correto
+      reminderDate: data.reminderDate ? new Date(data.reminderDate).toISOString() : undefined,
+      startDate: data.startDate ? new Date(data.startDate).toISOString() : undefined,
+      endDate: data.endDate ? new Date(data.endDate).toISOString() : undefined,
+      // Garantir que categoryId seja null em vez de string vazia
+      categoryId: data.categoryId === "none" ? null : data.categoryId,
+      // Garantir que reminderRepeat seja string vazia em vez de "none"
+      reminderRepeat: data.reminderRepeat === "none" ? "" : data.reminderRepeat,
     };
+    
+    console.log("📤 Dados processados enviados para API:", formData);
 
     if (note) {
       updateNoteMutation.mutate(formData);
