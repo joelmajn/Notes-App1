@@ -6,6 +6,22 @@ This is a full-stack notes application built with React, Express, TypeScript, an
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes
+
+## Xano Integration (August 28, 2025)
+- Created complete Xano API integration with endpoint: `https://x8ki-letl-twmt.n7.xano.io/api:G2JBF9sk`
+- Added xano-api.ts for API communication
+- Updated api.ts with hybrid system (Xano + mock data)
+- Flag `USE_XANO = true` enables Xano integration
+
+## Browser Extension (August 28, 2025)
+- Created complete browser extension in `frontend-standalone/extension/` folder
+- Widget persists across all web pages with drag and drop functionality
+- Offline functionality with local storage and sync when online
+- Popup interface for extension controls
+- Generated custom icons for 16px, 48px, and 128px sizes
+- Extension syncs with Xano API and main app
+
 # System Architecture
 
 ## Frontend Architecture

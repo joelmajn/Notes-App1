@@ -1,5 +1,9 @@
+import { xanoApi } from './xano-api';
 import { mockApi } from "./mock-data";
 import type { Note, InsertNote, UpdateNote, Category, InsertCategory, Tag } from "@shared/schema";
+
+// Flag para alternar entre Xano e dados mock
+const USE_XANO = true; // Mude para false para usar dados mock
 
 export const api = {
   // Notes
@@ -11,9 +15,11 @@ export const api = {
       favorite?: boolean;
       archived?: boolean;
       reminders?: boolean;
-    }) => mockApi.notes.getAll(params),
+    }) => USE_XANO ? xanoApi.notes.list() : mockApi.notes.getAll(params),
 
-    getById: (id: string) => mockApi.notes.getById(id),
+    getById: (id: string) => USE_XANO ? 
+      xanoApi.notes.list().then(notes => notes.find(n => n.id === id)) : 
+      mockApi.notes.getById(id),
 
     create: (note: InsertNote) => {
       const noteData = {
@@ -22,33 +28,47 @@ export const api = {
         categoryId: note.categoryId || null,
         tags: note.tags || [],
         checklist: note.checklist || [],
-        reminders: note.reminders || [],
-        favorite: note.favorite || false,
-        archived: note.archived || false
+        reminderDate: note.reminders?.[0]?.date || null,
+        isFavorite: note.favorite || false,
+        isArchived: note.archived || false
       };
-      return mockApi.notes.create(noteData);
+      return USE_XANO ? xanoApi.notes.create(noteData) : mockApi.notes.create(noteData);
     },
 
-    update: (id: string, note: UpdateNote) => mockApi.notes.update(id, note),
+    update: (id: string, note: UpdateNote) => {
+      const noteData = {
+        title: note.title,
+        content: note.content,
+        categoryId: note.categoryId,
+        tags: note.tags,
+        checklist: note.checklist,
+        reminderDate: note.reminders?.[0]?.date,
+        isFavorite: note.favorite,
+        isArchived: note.archived
+      };
+      return USE_XANO ? xanoApi.notes.update(id, noteData) : mockApi.notes.update(id, note);
+    },
 
-    delete: (id: string) => mockApi.notes.delete(id),
+    delete: (id: string) => USE_XANO ? xanoApi.notes.delete(id) : mockApi.notes.delete(id),
   },
 
   // Categories
   categories: {
-    getAll: () => mockApi.categories.getAll(),
+    getAll: () => USE_XANO ? xanoApi.categories.list() : mockApi.categories.getAll(),
 
-    create: (category: InsertCategory) => mockApi.categories.create(category),
+    create: (category: InsertCategory) => USE_XANO ? 
+      xanoApi.categories.create(category) : 
+      mockApi.categories.create(category),
 
-    delete: (id: string) => mockApi.categories.delete(id),
+    delete: (id: string) => USE_XANO ? 
+      Promise.resolve() : // Xano não tem delete category ainda
+      mockApi.categories.delete(id),
   },
 
-  // Tags
+  // Tags (usando dados mock pois Xano store tags como array)
   tags: {
     getAll: () => mockApi.tags.getAll(),
-
     create: (tag: { name: string }) => mockApi.tags.create(tag),
-
     delete: (id: string) => mockApi.tags.delete(id),
   },
 };
