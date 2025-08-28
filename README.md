@@ -27,6 +27,29 @@ npm run dev
 
 3. Abra no navegador: `http://localhost:3000`
 
+## Deploy no Vercel
+
+Para fazer deploy no Vercel, siga estes passos:
+
+1. Certifique-se de que todos os arquivos estão corretos
+2. Faça push para um repositório Git
+3. Conecte o repositório no Vercel
+4. O build será automático usando as configurações em `vercel.json`
+
+### Problemas Comuns
+
+Se o design aparecer descofigurado:
+- ✅ Verifique se `tailwind.config.ts` aponta para os caminhos corretos
+- ✅ Confirme que `postcss.config.js` está configurado
+- ✅ Verifique se todas as dependências do Tailwind estão instaladas
+- ✅ Certifique-se de que o arquivo CSS está sendo importado corretamente
+
+### Configurações para Deploy
+
+- `vercel.json` - Configurações do Vercel
+- `tailwind.config.ts` - Caminhos corretos para o conteúdo
+- `vite.config.ts` - Configurações do build
+
 ## Estrutura
 
 ```
