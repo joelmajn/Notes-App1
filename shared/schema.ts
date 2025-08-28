@@ -28,6 +28,9 @@ export const notes = pgTable("notes", {
   checklist: jsonb("checklist").$type<ChecklistItem[]>().default([]),
   reminderDate: timestamp("reminder_date"),
   reminderRepeat: text("reminder_repeat"), // daily, weekly, monthly
+  color: text("color").default("#ffffff"), // Cor personalizada da nota
+  startDate: timestamp("start_date"), // Data de início do período
+  endDate: timestamp("end_date"), // Data final do período
   isFavorite: boolean("is_favorite").default(false),
   isArchived: boolean("is_archived").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -52,7 +55,7 @@ export const insertTagSchema = createInsertSchema(tags).omit({
   createdAt: true,
 });
 
-export const insertNoteSchema = createInsertSchema(notes).omit({
+const baseNoteSchema = createInsertSchema(notes).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -63,10 +66,23 @@ export const insertNoteSchema = createInsertSchema(notes).omit({
     text: z.string(),
     completed: z.boolean(),
   })).optional(),
+  color: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+});
+
+export const insertNoteSchema = baseNoteSchema.refine((data) => {
+  if (data.startDate && data.endDate) {
+    return new Date(data.startDate) < new Date(data.endDate);
+  }
+  return true;
+}, {
+  message: "Data final deve ser posterior à data inicial",
+  path: ["endDate"],
 });
 
 // Update schemas
-export const updateNoteSchema = insertNoteSchema.partial();
+export const updateNoteSchema = baseNoteSchema.partial();
 
 // Types
 export type InsertCategory = z.infer<typeof insertCategorySchema>;

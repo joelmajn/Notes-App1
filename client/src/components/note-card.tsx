@@ -13,6 +13,7 @@ import {
   MoreHorizontal,
   Bell,
   Paperclip,
+  Calendar,
 } from "lucide-react";
 
 interface NoteCardProps {
@@ -68,9 +69,20 @@ export function NoteCard({ note, category, onClick }: NoteCardProps) {
     });
   };
 
+  const formatDateRange = (startDate: Date | null, endDate: Date | null) => {
+    if (!startDate || !endDate) return null;
+    const start = new Date(startDate).toLocaleDateString('pt-BR');
+    const end = new Date(endDate).toLocaleDateString('pt-BR');
+    return `${start} - ${end}`;
+  };
+
   return (
     <div
-      className="note-card bg-card rounded-lg border border-border p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+      className="note-card rounded-lg border border-border p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+      style={{
+        backgroundColor: note.color && note.color !== '#ffffff' ? `${note.color}15` : 'hsl(var(--card))',
+        borderLeft: note.color && note.color !== '#ffffff' ? `4px solid ${note.color}` : undefined,
+      }}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -166,6 +178,16 @@ export function NoteCard({ note, category, onClick }: NoteCardProps) {
               +{note.tags ? note.tags.length - 2 : 0}
             </Badge>
           )}
+        </div>
+      )}
+
+      {/* Period Range */}
+      {note.startDate && note.endDate && (
+        <div className="mb-3">
+          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+            <Calendar className="w-3 h-3" />
+            <span>Período: {formatDateRange(note.startDate, note.endDate)}</span>
+          </div>
         </div>
       )}
 

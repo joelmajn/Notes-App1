@@ -26,13 +26,45 @@ import {
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
-const noteFormSchema = insertNoteSchema.extend({
+// Cores predefinidas para as notas
+const NOTE_COLORS = [
+  { name: "Branco", value: "#ffffff" },
+  { name: "Azul", value: "#3b82f6" },
+  { name: "Verde", value: "#10b981" },
+  { name: "Amarelo", value: "#f59e0b" },
+  { name: "Rosa", value: "#ec4899" },
+  { name: "Roxo", value: "#8b5cf6" },
+  { name: "Laranja", value: "#f97316" },
+  { name: "Vermelho", value: "#ef4444" },
+  { name: "Cinza", value: "#6b7280" },
+  { name: "Verde Claro", value: "#84cc16" },
+];
+
+const noteFormSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+  categoryId: z.string().nullable(),
   tags: z.array(z.string()).optional(),
   checklist: z.array(z.object({
     id: z.string(),
     text: z.string(),
     completed: z.boolean(),
   })).optional(),
+  reminderDate: z.string().optional(),
+  reminderRepeat: z.string().optional(),
+  color: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  isFavorite: z.boolean(),
+  isArchived: z.boolean(),
+}).refine((data) => {
+  if (data.startDate && data.endDate) {
+    return new Date(data.startDate) < new Date(data.endDate);
+  }
+  return true;
+}, {
+  message: "Data final deve ser posterior à data inicial",
+  path: ["endDate"],
 });
 
 type NoteFormData = z.infer<typeof noteFormSchema>;
@@ -61,6 +93,9 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
       checklist: [],
       reminderDate: undefined,
       reminderRepeat: "none",
+      color: "#ffffff",
+      startDate: undefined,
+      endDate: undefined,
       isFavorite: false,
       isArchived: false,
     },
@@ -75,10 +110,13 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
         categoryId: note.categoryId || null,
         tags: note.tags || [],
         checklist: note.checklist || [],
-        reminderDate: note.reminderDate || undefined,
+        reminderDate: note.reminderDate ? note.reminderDate.toISOString().slice(0, 16) : undefined,
         reminderRepeat: note.reminderRepeat || "none",
-        isFavorite: note.isFavorite,
-        isArchived: note.isArchived,
+        color: note.color || "#ffffff",
+        startDate: note.startDate ? note.startDate.toISOString().slice(0, 10) : undefined,
+        endDate: note.endDate ? note.endDate.toISOString().slice(0, 10) : undefined,
+        isFavorite: note.isFavorite || false,
+        isArchived: note.isArchived || false,
       });
       setChecklist(note.checklist || []);
     } else {
@@ -90,6 +128,9 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
         checklist: [],
         reminderDate: undefined,
         reminderRepeat: "none",
+        color: "#ffffff",
+        startDate: undefined,
+        endDate: undefined,
         isFavorite: false,
         isArchived: false,
       });
@@ -320,6 +361,60 @@ export function NoteEditor({ isOpen, note, categories, onClose }: NoteEditorProp
                 ))}
               </div>
             )}
+
+            {/* Color Selection */}
+            <div>
+              <Label className="text-sm text-muted-foreground mb-2 block">Cor da nota:</Label>
+              <div className="flex flex-wrap gap-2">
+                {NOTE_COLORS.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    onClick={() => form.setValue("color", color.value)}
+                    className={`w-8 h-8 rounded-full border-2 ${
+                      form.watch("color") === color.value 
+                        ? "border-primary ring-2 ring-primary ring-offset-2" 
+                        : "border-border hover:border-primary"
+                    }`}
+                    style={{ backgroundColor: color.value }}
+                    title={color.name}
+                    data-testid={`color-${color.value}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Period Section */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold">Período</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm text-muted-foreground whitespace-nowrap">Data de Início:</Label>
+                  <Input
+                    type="date"
+                    {...form.register("startDate")}
+                    className="flex-1"
+                    data-testid="input-start-date"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Label className="text-sm text-muted-foreground whitespace-nowrap">Data Final:</Label>
+                  <Input
+                    type="date"
+                    {...form.register("endDate")}
+                    className="flex-1"
+                    data-testid="input-end-date"
+                  />
+                </div>
+              </div>
+              {form.formState.errors.endDate && (
+                <p className="text-sm text-destructive mt-1">
+                  {form.formState.errors.endDate.message}
+                </p>
+              )}
+            </div>
 
             {/* Content */}
             <div>
