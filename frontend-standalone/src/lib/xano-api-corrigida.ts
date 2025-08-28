@@ -1,28 +1,7 @@
-import { XANO_CONFIG } from '@/config/xano';
-import type { Note, Category } from '@shared/schema';
+// Configuração corrigida para integração Xano
+const XANO_BASE_URL = 'https://x8ki-letl-twmt.n7.xano.io/api:G2JBF9sk';
 
-const apiRequest = async (method: string, endpoint: string, data?: any) => {
-  try {
-    const response = await fetch(`${XANO_CONFIG.baseURL}${endpoint}`, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: data ? JSON.stringify(data) : undefined,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`);
-    }
-    
-    return response.json();
-  } catch (error) {
-    console.error('API Request failed:', error);
-    throw error;
-  }
-};
-
-// Interface para dados do Xano (com snake_case)
+// Interfaces para dados do Xano (formato snake_case)
 interface XanoNote {
   id: number;
   title: string;
@@ -44,14 +23,57 @@ interface XanoCategory {
   created_at: string;
 }
 
-// Funções para converter entre formatos
+// Interfaces para o frontend (formato camelCase)
+interface Note {
+  id: string;
+  title: string;
+  content: string;
+  categoryId: string | null;
+  tags: string[];
+  checklist: string[];
+  reminderDate: string | null;
+  isFavorite: boolean;
+  isArchived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+}
+
+const apiRequest = async (method: string, endpoint: string, data?: any) => {
+  try {
+    const response = await fetch(`${XANO_BASE_URL}${endpoint}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API Error ${response.status}: ${errorText}`);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Xano API Request failed:', error);
+    throw error;
+  }
+};
+
+// Conversores de formato
 const convertXanoNoteToNote = (xanoNote: XanoNote): Note => ({
   id: xanoNote.id.toString(),
   title: xanoNote.title,
   content: xanoNote.content,
   categoryId: xanoNote.category_id?.toString() || null,
-  tags: xanoNote.tags || [],
-  checklist: xanoNote.checklist || [],
+  tags: Array.isArray(xanoNote.tags) ? xanoNote.tags : [],
+  checklist: Array.isArray(xanoNote.checklist) ? xanoNote.checklist : [],
   reminderDate: xanoNote.reminder_date,
   isFavorite: xanoNote.is_favorite || false,
   isArchived: xanoNote.is_archived || false,
@@ -68,8 +90,13 @@ const convertXanoCategoryToCategory = (xanoCategory: XanoCategory): Category => 
 export const xanoApi = {
   notes: {
     list: async (): Promise<Note[]> => {
-      const xanoNotes: XanoNote[] = await apiRequest('GET', '/note');
-      return xanoNotes.map(convertXanoNoteToNote);
+      try {
+        const xanoNotes: XanoNote[] = await apiRequest('GET', '/note');
+        return Array.isArray(xanoNotes) ? xanoNotes.map(convertXanoNoteToNote) : [];
+      } catch (error) {
+        console.error('Error fetching notes:', error);
+        return [];
+      }
     },
     
     create: async (data: Partial<Note>): Promise<Note> => {
@@ -77,8 +104,8 @@ export const xanoApi = {
         title: data.title || 'Nova Nota',
         content: data.content || '',
         category_id: data.categoryId ? parseInt(data.categoryId) : null,
-        tags: data.tags || [],
-        checklist: data.checklist || [],
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        checklist: Array.isArray(data.checklist) ? data.checklist : [],
         reminder_date: data.reminderDate || null,
         is_favorite: data.isFavorite || false,
         is_archived: data.isArchived || false
@@ -88,11 +115,14 @@ export const xanoApi = {
     
     update: async (id: string, data: Partial<Note>): Promise<Note> => {
       const updateData: any = {};
+      
       if (data.title !== undefined) updateData.title = data.title;
       if (data.content !== undefined) updateData.content = data.content;
-      if (data.categoryId !== undefined) updateData.category_id = data.categoryId ? parseInt(data.categoryId) : null;
-      if (data.tags !== undefined) updateData.tags = data.tags;
-      if (data.checklist !== undefined) updateData.checklist = data.checklist;
+      if (data.categoryId !== undefined) {
+        updateData.category_id = data.categoryId ? parseInt(data.categoryId) : null;
+      }
+      if (data.tags !== undefined) updateData.tags = Array.isArray(data.tags) ? data.tags : [];
+      if (data.checklist !== undefined) updateData.checklist = Array.isArray(data.checklist) ? data.checklist : [];
       if (data.reminderDate !== undefined) updateData.reminder_date = data.reminderDate;
       if (data.isFavorite !== undefined) updateData.is_favorite = data.isFavorite;
       if (data.isArchived !== undefined) updateData.is_archived = data.isArchived;
@@ -108,8 +138,13 @@ export const xanoApi = {
   
   categories: {
     list: async (): Promise<Category[]> => {
-      const xanoCategories: XanoCategory[] = await apiRequest('GET', '/category');
-      return xanoCategories.map(convertXanoCategoryToCategory);
+      try {
+        const xanoCategories: XanoCategory[] = await apiRequest('GET', '/category');
+        return Array.isArray(xanoCategories) ? xanoCategories.map(convertXanoCategoryToCategory) : [];
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        return [];
+      }
     },
     
     create: async (data: Partial<Category>): Promise<Category> => {

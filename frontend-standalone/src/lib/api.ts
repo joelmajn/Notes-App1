@@ -3,7 +3,7 @@ import { mockApi } from "./mock-data";
 import type { Note, InsertNote, UpdateNote, Category, InsertCategory, Tag } from "@shared/schema";
 
 // Flag para alternar entre Xano e dados mock
-const USE_XANO = true; // Mude para false para usar dados mock
+const USE_XANO = false; // Mude para true após criar os endpoints no Xano
 
 export const api = {
   // Notes
