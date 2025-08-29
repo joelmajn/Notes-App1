@@ -1,9 +1,9 @@
 import { xanoApi } from './xano-api';
 import { mockApi } from "./mock-data";
-import type { Note, InsertNote, UpdateNote, Category, InsertCategory, Tag } from "@shared/schema";
+import type { Note, InsertNote, UpdateNote, Category, InsertCategory, Tag } from "../../../shared/schema";
 
 // Flag para alternar entre Xano e dados mock
-const USE_XANO = true; // Mude para false para usar dados mock
+const USE_XANO = true; // Endpoints do Xano já estão criados
 
 export const api = {
   // Notes
@@ -28,9 +28,9 @@ export const api = {
         categoryId: note.categoryId || null,
         tags: note.tags || [],
         checklist: note.checklist || [],
-        reminderDate: note.reminders?.[0]?.date || null,
-        isFavorite: note.favorite || false,
-        isArchived: note.archived || false
+        reminderDate: note.reminderDate || null,
+        isFavorite: note.isFavorite || false,
+        isArchived: note.isArchived || false
       };
       return USE_XANO ? xanoApi.notes.create(noteData) : mockApi.notes.create(noteData);
     },
@@ -42,9 +42,9 @@ export const api = {
         categoryId: note.categoryId,
         tags: note.tags,
         checklist: note.checklist,
-        reminderDate: note.reminders?.[0]?.date,
-        isFavorite: note.favorite,
-        isArchived: note.archived
+        reminderDate: note.reminderDate,
+        isFavorite: note.isFavorite,
+        isArchived: note.isArchived
       };
       return USE_XANO ? xanoApi.notes.update(id, noteData) : mockApi.notes.update(id, note);
     },
