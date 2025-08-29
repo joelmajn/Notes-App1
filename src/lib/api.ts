@@ -15,10 +15,10 @@ export const api = {
       favorite?: boolean;
       archived?: boolean;
       reminders?: boolean;
-    }) => USE_XANO ? xanoApi.notes.list() : mockApi.notes.getAll(params),
+    }) => USE_XANO ? xanoApi.notes.list(params) : mockApi.notes.getAll(params),
 
     getById: (id: string) => USE_XANO ? 
-      xanoApi.notes.list().then(notes => notes.find(n => n.id === id)) : 
+      xanoApi.notes.list({}).then(notes => notes.find(n => n.id === id)) : 
       mockApi.notes.getById(id),
 
     create: (note: InsertNote) => {
@@ -61,7 +61,7 @@ export const api = {
       mockApi.categories.create(category),
 
     delete: (id: string) => USE_XANO ? 
-      Promise.resolve() : // Xano não tem delete category ainda
+      xanoApi.categories.delete(id) : 
       mockApi.categories.delete(id),
   },
 
